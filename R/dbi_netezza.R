@@ -1,6 +1,6 @@
 #' RNetezza
 #'
-#' Provides Access to Databases Through the ODBC Interface An implementation of R's DBI interface using ODBC package as a back-end. This allows R to connect to any DBMS that has a ODBC driver.
+#' Provides Access to Netezza Through the ODBC Interface An implementation of R's DBI interface using ODBC package as a back-end.
 #'
 #' @name RNetezza
 #' @docType package
@@ -117,7 +117,7 @@ setMethod("dbSendQuery", "NetezzaConnection", function(conn, statement, ...) {
 #' @param ... Other parameters passed on to methods
 #' @export
 setMethod("dbGetInfo", "NetezzaConnection", function(dbObj, ...) {
-  info <- RNetezza::odbcGetInfo(dbObj@odbc)
+  info <- RODBC::odbcGetInfo(dbObj@odbc)
   list(dbname = unname(info["DBMS_Name"]),
        db.version = unname(info["DBMS_Ver"]),
        username = "",
@@ -146,7 +146,9 @@ setMethod("dbGetInfo", "NetezzaConnection", function(dbObj, ...) {
 #' dbDisconnect(con)
 #' }
 setMethod("dbListFields", c("NetezzaConnection", "character"), function(conn, name) {
-  sqlColumns(conn@odbc, name)$COLUMN_NAME
+  query <- paste0("SELECT * FROM ", name, " LIMIT 0")
+  res <- sqlQuery(conn@odbc, query)
+  names(res)
 })
 
 #' List available Netezza tables.
@@ -154,7 +156,12 @@ setMethod("dbListFields", c("NetezzaConnection", "character"), function(conn, na
 #' @param conn An existing \code{\linkS4class{NetezzaConnection}}
 #' @export
 setMethod("dbListTables", "NetezzaConnection", function(conn){
-  sqlTables(conn@odbc)$TABLE_NAME
+  query <- "SELECT tablename as name FROM _v_table where objtype in ('TABLE', 'TEMP TABLE')
+        union SELECT viewname as name FROM _v_view where objtype='VIEW'
+        union SELECT synonym_name as name FROM _v_synonym where objtype='SYNONYM'
+  "
+  res <- sqlQuery(conn@odbc, query, believeNRows=F)
+  as.character(res[[1]])
 })
 
 #' Write a local data frame or file to the database.
@@ -191,7 +198,7 @@ setMethod("dbWriteTable", c("NetezzaConnection", "character", "data.frame"), fun
 #' @return boolean value which indicated whether the table exists or not
 #' @export
 setMethod("dbExistsTable", c("NetezzaConnection", "character"), function(conn, name) {
-  tolower(name) %in% tolower(dbListTables(conn))
+  name %in% dbListTables(conn)
 })
 
 #' Remove a table from the database.
@@ -243,6 +250,7 @@ setMethod("dbRemoveTable", c("NetezzaConnection", "character"), function(conn, n
 #' dbDisconnect(con)
 #' }
 setMethod("dbReadTable", c("NetezzaConnection", "character"), function(conn, name, row.names = NA, check.names = TRUE, select.cols = "*") {
+  #out <- dbGetQuery(conn, paste("SELECT", select.cols, "FROM", name), row.names = row.names)
   out <- dbGetQuery(conn, paste("SELECT", select.cols, "FROM", name), row.names = row.names)
   if (check.names) {
     names(out) <- make.names(names(out), unique = TRUE)
@@ -297,7 +305,7 @@ is_done <- function(x) {
 #' @export
 #' @rdname odbc-query
 setMethod("dbFetch", "NetezzaResult", function(res, n = -1, ...) {
-  result <- sqlQuery(res@connection@odbc, res@sql, max=ifelse(n==-1, 0, n))
+  result <- sqlQuery(res@connection@odbc, res@sql, max=ifelse(n==-1, 0, n), believeNRows=F)
   is_done(res) <- TRUE
   result
 })
@@ -359,7 +367,7 @@ NULL
 #' @rdname odbc-meta
 #' @export
 setMethod("dbGetRowCount", "NetezzaResult", function(res, ...) {
-  df <- sqlQuery(res@connection@odbc, res@sql)
+  df <- sqlQuery(res@connection@odbc, res@sql, believeNRows=F)
   nrow(df)
 })
 
