@@ -1,0 +1,13 @@
+Package: RNetezza
+Type: Package
+Title: DBI Netezza SQL
+Version: 0.1.0
+Date: 2016-04-18
+Author: Philippe Chataignon
+Maintainer: Philippe Chataignon <philippe.chataignon@justice.gouv.fr>
+License: GPL
+Depends:
+    methods,
+    DBI (>= 0.3.0),
+    RODBC
+RoxygenNote: 5.0.1
