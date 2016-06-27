@@ -5,8 +5,8 @@
 #' @name RNetezza
 #' @docType package
 #' @import methods DBI RODBC
-NULL
-setOldClass("RODBC")
+#NULL
+#setOldClass("RODBC")
 
 #' NetezzaDriver and methods.
 #'
@@ -38,7 +38,14 @@ Netezza <- function() {new("NetezzaDriver")}
 
 #' @rdname NetezzaDriver-class
 #' @export
-setMethod("dbUnloadDriver", "NetezzaDriver", function(drv, ...) {TRUE})
+setMethod("dbUnloadDriver", "NetezzaDriver", function(drv, ...) {
+    TRUE
+})
+
+
+setMethod("show", "NetezzaDriver", function(object) {
+            cat("<NetezzaDriver>\n")
+})
 
 #' Connect/disconnect to a Netezza data source
 #'
