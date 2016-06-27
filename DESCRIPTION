@@ -6,7 +6,7 @@ Date: 2016-04-18
 Author: Philippe Chataignon
 Maintainer: Philippe Chataignon <philippe.chataignon@justice.gouv.fr>
 License: GPL
-Depends:
+Imports:
     methods,
     DBI (>= 0.3.0),
     RODBC

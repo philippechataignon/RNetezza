@@ -5,8 +5,8 @@
 #' @name RNetezza
 #' @docType package
 #' @import methods DBI RODBC
-#NULL
-#setOldClass("RODBC")
+NULL
+setOldClass("RODBC")
 
 #' NetezzaDriver and methods.
 #'
@@ -154,7 +154,7 @@ setMethod("dbGetInfo", "NetezzaConnection", function(dbObj, ...) {
 #' }
 setMethod("dbListFields", c("NetezzaConnection", "character"), function(conn, name) {
   query <- paste0("SELECT * FROM ", name, " LIMIT 0")
-  res <- sqlQuery(conn@odbc, query)
+  res <- sqlQuery(conn@odbc, query, stringsAsFactors = F, believeNRows=F)
   names(res)
 })
 
@@ -167,7 +167,7 @@ setMethod("dbListTables", "NetezzaConnection", function(conn){
         union SELECT viewname as name FROM _v_view where objtype='VIEW'
         union SELECT synonym_name as name FROM _v_synonym where objtype='SYNONYM'
   "
-  res <- sqlQuery(conn@odbc, query, believeNRows=F)
+  res <- sqlQuery(conn@odbc, query, believeNRows=F, stringsAsFactors = F)
   as.character(res[[1]])
 })
 
@@ -312,7 +312,12 @@ is_done <- function(x) {
 #' @export
 #' @rdname odbc-query
 setMethod("dbFetch", "NetezzaResult", function(res, n = -1, ...) {
-  result <- sqlQuery(res@connection@odbc, res@sql, max=ifelse(n==-1, 0, n), believeNRows=F)
+  result <- sqlQuery(res@connection@odbc, 
+                     res@sql, 
+                     max=ifelse(n==-1, 0, n), 
+                     believeNRows=F, 
+                     stringsAsFactors = F
+                     )
   is_done(res) <- TRUE
   result
 })
@@ -374,7 +379,7 @@ NULL
 #' @rdname odbc-meta
 #' @export
 setMethod("dbGetRowCount", "NetezzaResult", function(res, ...) {
-  df <- sqlQuery(res@connection@odbc, res@sql, believeNRows=F)
+  df <- sqlQuery(res@connection@odbc, res@sql, believeNRows=F, stringsAsFactors = F)
   nrow(df)
 })
 
@@ -394,15 +399,15 @@ setMethod("dbGetInfo", "NetezzaResult", function(dbObj, ...) {
 #' @rdname odbc-meta
 #' @export
 setMethod("dbColumnInfo", "NetezzaResult", function(res, ...) {
-  df <- sqlQuery(res@connection@odbc, res@sql, max=1)
+  df <- sqlQuery(res@connection@odbc, res@sql, max=1, stringsAsFactors = F, believeNRows=F)
   data_type <- sapply(df, class)
   data.frame(
     name=colnames(df),
     data.type=data_type,
-    field.type=-1, #Can implement it(Data type in DBMS) through RNetezza
+    field.type=-1, 
     len=-1,
     precision=-1,
     scale=-1,
-    nullOK=sapply(df, function(x){any(is.null(x))}) #adhoc...
+    nullOK=sapply(df, function(x){any(is.null(x))})
   )
 })
