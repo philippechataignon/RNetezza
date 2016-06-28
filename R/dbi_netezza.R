@@ -287,7 +287,7 @@ setMethod("dbReadTable", c("NetezzaConnection", "character"), function(conn, nam
 #' }
 #' @export
 setMethod("dbDisconnect", "NetezzaConnection", function(conn) {
-  if (RNetezza:::odbcValidChannel(conn@odbc)){
+  if (RODBC:::odbcValidChannel(conn@odbc)){
     odbcClose(conn@odbc)
   } else{
     TRUE
