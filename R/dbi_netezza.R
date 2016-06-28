@@ -312,13 +312,16 @@ is_done <- function(x) {
 #' @export
 #' @rdname odbc-query
 setMethod("dbFetch", "NetezzaResult", function(res, n = -1, ...) {
-  result <- sqlQuery(res@connection@odbc, 
-                     res@sql, 
-                     max=ifelse(n==-1, 0, n), 
-                     believeNRows=F, 
+  result <- sqlQuery(res@connection@odbc,
+                     res@sql,
+                     max=ifelse(n==-1, 0, n),
+                     believeNRows=F,
                      stringsAsFactors = F
                      )
   is_done(res) <- TRUE
+  if(is.null(result)) {
+    result <- data.frame(result)
+  }
   result
 })
 
