@@ -42,10 +42,20 @@ setMethod("dbUnloadDriver", "NetezzaDriver", function(drv, ...) {
     TRUE
 })
 
-
 setMethod("show", "NetezzaDriver", function(object) {
             cat("<NetezzaDriver>\n")
 })
+
+#' Class NetezzaConnection.
+#'
+#' \code{NetezzaConnection} objects are usually created by \code{\link[DBI]{dbConnect}}
+#' @keywords internal
+#' @export
+setClass(
+  "NetezzaConnection",
+  contains="DBIConnection",
+  slots=list(odbc="RODBC")
+)
 
 #' Connect/disconnect to a Netezza data source
 #'
@@ -67,7 +77,7 @@ setMethod("show", "NetezzaDriver", function(object) {
 setMethod(
   "dbConnect",
   "NetezzaDriver",
-  function(drv, dsn, db=NULL, uid=NULL, pwd=NULL, ...){
+  function(drv, dsn, uid=NULL, pwd=NULL, db=NULL){
 	st <- paste0("DSN=", dsn)
     if (!is.null(uid)) {
         st <- paste0(st, ";UID=", uid)
@@ -94,18 +104,6 @@ setMethod("dbIsValid", "NetezzaDriver", function(dbObj) {TRUE})
 #' @rdname NetezzaDriver-class
 #' @export
 setMethod("dbGetInfo", "NetezzaDriver", function(dbObj, ...) {NULL})
-
-
-#' Class NetezzaConnection.
-#'
-#' \code{NetezzaConnection} objects are usually created by \code{\link[DBI]{dbConnect}}
-#' @keywords internal
-#' @export
-setClass(
-  "NetezzaConnection",
-  contains="DBIConnection",
-  slots=list(odbc="RODBC")
-)
 
 #' Execute a statement on a given database connection.
 #'
@@ -203,10 +201,11 @@ setMethod("dbListTables", "NetezzaConnection", function(conn){
 #' dbReadTable(con, "mtcars")
 #' dbDisconnect(con)
 #' }
-setMethod("dbWriteTable", c("NetezzaConnection", "character", "data.frame"), function(conn, name, value, overwrite=FALSE, append=FALSE, ...) {
-  sqlSave(conn@odbc, dat=value, tablename=name, safer=!overwrite, append=append, ...)
-  invisible(TRUE)
-})
+setMethod("dbWriteTable", c("NetezzaConnection", "character", "data.frame"), 
+	function(conn, name, value, overwrite=FALSE, append=FALSE, ...) {
+  		sqlSave(conn@odbc, dat=value, tablename=name, safer=!overwrite, append=append, ...)
+  		invisible(TRUE)
+	})
 
 #' Does the table exist?
 #'
@@ -267,7 +266,6 @@ setMethod("dbRemoveTable", c("NetezzaConnection", "character"), function(conn, n
 #' dbDisconnect(con)
 #' }
 setMethod("dbReadTable", c("NetezzaConnection", "character"), function(conn, name, row.names = NA, check.names = TRUE, select.cols = "*") {
-  #out <- dbGetQuery(conn, paste("SELECT", select.cols, "FROM", name), row.names = row.names)
   out <- dbGetQuery(conn, paste0('SELECT ', select.cols, ' FROM "', name, '"'), row.names = row.names)
   if (check.names) {
     names(out) <- make.names(names(out), unique = TRUE)
@@ -421,7 +419,7 @@ setMethod("dbColumnInfo", "NetezzaResult", function(res, ...) {
   data.frame(
     name=colnames(df),
     data.type=data_type,
-    field.type=-1, 
+    field.type=-1,
     len=-1,
     precision=-1,
     scale=-1,
