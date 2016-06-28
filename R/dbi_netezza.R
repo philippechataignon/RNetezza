@@ -67,8 +67,18 @@ setMethod("show", "NetezzaDriver", function(object) {
 setMethod(
   "dbConnect",
   "NetezzaDriver",
-  function(drv, dsn, ...){
-    connection <- odbcConnect(dsn)
+  function(drv, dsn, db=NULL, uid=NULL, pwd=NULL, ...){
+	st <- paste0("DSN=", dsn)
+    if (!is.null(uid)) {
+        st <- paste0(st, ";UID=", uid)
+    }
+    if (!is.null(pwd)) {
+        st <- paste0(st, ";PWD=", pwd)
+    }
+    if (!is.null(db)) {
+        st <- paste0(st, ";Database=", db)
+	}
+    connection <- odbcDriverConnect(st, believeNRows=F)
     new("NetezzaConnection", odbc=connection)
   }
 )
