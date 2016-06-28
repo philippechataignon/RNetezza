@@ -163,8 +163,8 @@ setMethod("dbGetInfo", "NetezzaConnection", function(dbObj, ...) {
 #' dbDisconnect(con)
 #' }
 setMethod("dbListFields", c("NetezzaConnection", "character"), function(conn, name) {
-  query <- paste0("SELECT * FROM ", name, " LIMIT 0")
-  res <- sqlQuery(conn@odbc, query, stringsAsFactors = F, believeNRows=F)
+  query <- paste0('SELECT * FROM "', name, '" LIMIT 0')
+  res <- sqlQuery(conn@odbc, query, stringsAsFactors=F, believeNRows=F)
   names(res)
 })
 
@@ -268,7 +268,7 @@ setMethod("dbRemoveTable", c("NetezzaConnection", "character"), function(conn, n
 #' }
 setMethod("dbReadTable", c("NetezzaConnection", "character"), function(conn, name, row.names = NA, check.names = TRUE, select.cols = "*") {
   #out <- dbGetQuery(conn, paste("SELECT", select.cols, "FROM", name), row.names = row.names)
-  out <- dbGetQuery(conn, paste("SELECT", select.cols, "FROM", name), row.names = row.names)
+  out <- dbGetQuery(conn, paste0('SELECT ', select.cols, ' FROM "', name, '"'), row.names = row.names)
   if (check.names) {
     names(out) <- make.names(names(out), unique = TRUE)
   }
