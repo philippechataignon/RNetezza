@@ -320,13 +320,9 @@ is_done <- function(x) {
 #' @export
 #' @rdname odbc-query
 setMethod("dbFetch", "NetezzaResult", function(res, n = -1, ...) {
-  if (n != -1) {
-	  stop("dbFetch for Netezza only accept n=-1")
-  }
-
   result <- sqlQuery(res@connection@odbc,
                      res@sql,
-                     max=ifelse(n==-1, 0, n),
+                     max=0,
                      believeNRows=F,
                      stringsAsFactors = F
                      )
