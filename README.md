@@ -2,6 +2,10 @@
 
 RNetezza is an DBI-compliant interface to the Netezza database. 
 
+# Note
+
+I have no longer access to a Netezza database. **This package is unmaintained**.
+
 #Installation
 
 Install via github:
